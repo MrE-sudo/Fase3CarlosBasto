@@ -4,7 +4,7 @@ APP_NAME = "Fase3CarlosBasto"
 STUDENT_NAME = "Carlos Basto"
 COURSE_NAME = "Estructura de Datos"
 COURSE_CODE = "301305"
-COLLABORATIVE_GROUP = "301305_1"  # <-- cámbielo por su número de grupo colaborativo
+COLLABORATIVE_GROUP = "301305"  
 INSTITUTION = "UNAD \u00b7 ECBTI \u00b7 Ingenier\u00eda de Sistemas"
 
 LOGIN_PASSWORD = "Caja"
