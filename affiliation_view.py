@@ -1,4 +1,4 @@
-"""Ventana de ingreso de datos: 'Caja Compensándote – Control de Afiliados'."""
+"""Data entry window: 'Caja Compensándote – Control de Afiliados'."""
 
 import tkinter as tk
 from datetime import date
@@ -6,22 +6,23 @@ from tkinter import messagebox, simpledialog, ttk
 
 import config
 from models import (EMPLOYMENT_TYPES, ID_TYPES, SERVICES, STRUCTURES, AffiliateRepository,
-                    EstructuraDatosAfiliado, calculate_affiliation_fee, format_money)
+                    EstructuraDatosAfiliado, MIN_INCOME, calculate_affiliation_fee,
+                    format_money)
 
 TREE_COLUMNS = (
-    ("id_type", "Tipo ID", 65),
-    ("id_number", "N\u00famero ID", 85),
-    ("full_name", "Nombre completo", 125),
-    ("income", "Ingresos ($)", 90),
-    ("service", "Servicio", 140),
-    ("employment", "Modalidad", 95),
-    ("fee", "Tarifa ($)", 85),
-    ("date", "Fecha", 90),
+    ("id_type", "ID Type", 64),
+    ("id_number", "ID Number", 84),
+    ("full_name", "Full Name", 135),
+    ("income", "Income ($)", 90),
+    ("service", "Service", 160),
+    ("employment", "Employment", 105),
+    ("fee", "Tariff ($)", 80),
+    ("date", "Date", 100),
 )
 
 
 class AffiliationWindow(tk.Tk):
-    """Formulario principal: registrar, eliminar, reportar y limpiar afiliados."""
+    """Main form: register, delete, report and clear affiliates."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -56,13 +57,13 @@ class AffiliationWindow(tk.Tk):
         self.year_var = tk.StringVar(value=str(today.year))
         self.structure_var = tk.StringVar(value=STRUCTURES[0])
         self.report_var = tk.StringVar()
-        self.status_var = tk.StringVar(value="Listo \u2014 diligencie el formulario y presione Registrar.")
+        self.status_var = tk.StringVar(value="Ready \u2014 fill in the form and click Register.")
 
-        # La tarifa se recalcula por eventos cada vez que cambia alguno de sus datos.
+        # The fee is recalculated by events whenever one of its inputs changes.
         for var in (self.income_var, self.employment_var, self.service_var):
             var.trace_add("write", self._update_fee)
 
-    # ---------------------------------------------------------------- estilos
+    # ----------------------------------------------------------------- styles
     def _configure_styles(self) -> None:
         style = ttk.Style(self)
         style.theme_use("clam")
@@ -94,11 +95,11 @@ class AffiliationWindow(tk.Tk):
         style.configure("Treeview.Heading", background=config.COLOR_FIELD, foreground=config.COLOR_ACCENT,
                         font=("Segoe UI", 9, "bold"))
 
-    # ------------------------------------------------------------ distribución
+    # ------------------------------------------------------------------ layout
     def _build_header(self) -> None:
         header = tk.Frame(self, bg=config.COLOR_FIELD)
         header.pack(fill="x")
-        tk.Label(header, text="Compens\u00e1ndote \u2014 Control de Afiliaciones", bg=config.COLOR_FIELD,
+        tk.Label(header, text="Compens\u00e1ndote \u2014 Affiliation Control", bg=config.COLOR_FIELD,
                  fg=config.COLOR_ACCENT, font=("Segoe UI", 14, "bold")).pack(side="left", padx=14, pady=8)
         tk.Label(header, text=f"{config.STUDENT_NAME}  |  {config.COURSE_NAME} {config.COURSE_CODE}",
                  bg=config.COLOR_FIELD, fg="#9fd9ea", font=("Segoe UI", 9)).pack(side="right", padx=14)
@@ -129,57 +130,57 @@ class AffiliationWindow(tk.Tk):
         digits_only = (self.register(lambda p: p == "" or (p.isascii() and p.isdigit())), "%P")
         letters_only = (self.register(lambda p: all(c.isalpha() or c == " " for c in p)), "%P")
 
-        # Identificación
-        self._section(inner, "Identificaci\u00f3n")
-        self._field(inner, "Tipo ID")
+        # Identification
+        self._section(inner, "Identification")
+        self._field(inner, "ID Type")
         ttk.Combobox(inner, textvariable=self.id_type_var, values=ID_TYPES,
                      state="readonly").pack(fill="x")
-        self._field(inner, "N\u00famero de identificaci\u00f3n (solo n\u00fameros)")
+        self._field(inner, "ID Number (digits only)")
         self.id_number_entry = ttk.Entry(inner, textvariable=self.id_number_var,
                                          validate="key", validatecommand=digits_only)
         self.id_number_entry.pack(fill="x")
-        self._field(inner, "Nombre completo (solo letras)")
+        self._field(inner, "Full Name (letters only)")
         ttk.Entry(inner, textvariable=self.full_name_var, validate="key",
                   validatecommand=letters_only).pack(fill="x")
 
-        # Datos económicos
-        self._section(inner, "Datos Econ\u00f3micos")
-        self._field(inner, "Ingresos actuales ($, solo n\u00fameros)")
+        # Economic data
+        self._section(inner, "Economic Data")
+        self._field(inner, "Current Income ($, digits only)")
         ttk.Entry(inner, textvariable=self.income_var, validate="key",
                   validatecommand=digits_only).pack(fill="x")
-        self._field(inner, "Modalidad de empleo")
+        self._field(inner, "Employment Type")
         radios = tk.Frame(inner, bg=config.COLOR_PANEL)
         radios.pack(fill="x")
         for option in EMPLOYMENT_TYPES:
             ttk.Radiobutton(radios, text=option, value=option,
                             variable=self.employment_var).pack(side="left", padx=(0, 16))
-        self._field(inner, "Servicio deseado")
+        self._field(inner, "Desired Service")
         ttk.Combobox(inner, textvariable=self.service_var, values=SERVICES,
                      state="readonly").pack(fill="x")
-        self._field(inner, "Tarifa de afiliaci\u00f3n ($) \u2014 solo lectura")
+        self._field(inner, "Affiliation Tariff ($) \u2014 read only")
         ttk.Entry(inner, textvariable=self.fee_var, state="readonly",
                   style="Fee.TEntry").pack(fill="x")
 
-        # Fecha de afiliación (dd/mm/aaaa)
-        self._section(inner, "Fecha de Afiliaci\u00f3n (dd/mm/aaaa)")
+        # Affiliation date (dd/mm/yyyy)
+        self._section(inner, "Affiliation Date (dd/mm/yyyy)")
         date_row = tk.Frame(inner, bg=config.COLOR_PANEL)
         date_row.pack(fill="x")
-        for caption, var, low, high, width in (("D\u00eda", self.day_var, 1, 31, 4),
-                                               ("Mes", self.month_var, 1, 12, 4),
-                                               ("A\u00f1o", self.year_var, 1900, 2100, 6)):
+        for caption, var, low, high, width in (("Day", self.day_var, 1, 31, 4),
+                                               ("Month", self.month_var, 1, 12, 4),
+                                               ("Year", self.year_var, 1900, 2100, 6)):
             cell = tk.Frame(date_row, bg=config.COLOR_PANEL)
             cell.pack(side="left", padx=(0, 10))
             ttk.Label(cell, text=caption).pack(anchor="w")
             ttk.Spinbox(cell, from_=low, to=high, textvariable=var, width=width,
                         wrap=True).pack()
 
-        # Selector de estructura de datos + reporte
-        self._section(inner, "Estructura de Datos")
+        # Data structure selector + report
+        self._section(inner, "Data Structure")
         structure_box = ttk.Combobox(inner, textvariable=self.structure_var, values=STRUCTURES,
                                      state="readonly")
         structure_box.pack(fill="x")
         structure_box.bind("<<ComboboxSelected>>", self._on_structure_changed)
-        self._field(inner, "Reporte \u2014 solo lectura")
+        self._field(inner, "Report \u2014 read only")
         ttk.Entry(inner, textvariable=self.report_var, state="readonly",
                   style="Report.TEntry").pack(fill="x")
 
@@ -197,7 +198,7 @@ class AffiliationWindow(tk.Tk):
                                  selectmode="browse")
         for key, heading, width in TREE_COLUMNS:
             self.tree.heading(key, text=heading)
-            self.tree.column(key, width=width, anchor="w", stretch=True)
+            self.tree.column(key, width=width, anchor="w", stretch=(key == "service"))
         y_scroll = ttk.Scrollbar(area, orient="vertical", command=self.tree.yview)
         x_scroll = ttk.Scrollbar(area, orient="horizontal", command=self.tree.xview)
         self.tree.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
@@ -210,11 +211,11 @@ class AffiliationWindow(tk.Tk):
         bar.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(8, 0))
         bar.columnconfigure(tuple(range(5)), weight=1, uniform="btn")
         buttons = (
-            ("Registrar", self._on_register, config.COLOR_ACCENT, "black"),
-            ("Eliminar", self._on_delete, config.COLOR_RED, "white"),
-            ("Reporte", self._on_report, config.COLOR_GREEN, "black"),
-            ("Limpiar", self._on_clear, config.COLOR_ORANGE, "black"),
-            ("Salir", self._on_exit, config.COLOR_FIELD, "white"),
+            ("Register", self._on_register, config.COLOR_ACCENT, "black"),
+            ("Delete", self._on_delete, config.COLOR_RED, "white"),
+            ("Report", self._on_report, config.COLOR_GREEN, "black"),
+            ("Clear", self._on_clear, config.COLOR_ORANGE, "black"),
+            ("Exit", self._on_exit, config.COLOR_FIELD, "white"),
         )
         for column, (text, command, bg, fg) in enumerate(buttons):
             tk.Button(bar, text=text, command=command, bg=bg, fg=fg, relief="flat",
@@ -225,30 +226,37 @@ class AffiliationWindow(tk.Tk):
         tk.Label(self, textvariable=self.status_var, bg=config.COLOR_FIELD, fg="#9fd9ea",
                  anchor="w", font=("Consolas", 9), padx=10).pack(fill="x", side="bottom")
 
-    # -------------------------------------------------------------- auxiliares
+    # ----------------------------------------------------------------- helpers
     def _set_status(self, message: str) -> None:
         self.status_var.set(message)
 
     def _update_fee(self, *_args) -> None:
-        """Recalcula la tarifa de afiliación (campo de solo lectura)."""
+        """Recalculate the (read-only) affiliation tariff."""
         income_text = self.income_var.get().strip()
         if not income_text:
             self.fee_var.set("")
             return
-        fee = calculate_affiliation_fee(int(income_text), self.employment_var.get(),
-                                        self.service_var.get())
+        try:
+            fee = calculate_affiliation_fee(int(income_text), self.employment_var.get(),
+                                            self.service_var.get())
+        except ValueError:
+            # Income below the first bracket of the tables: no fee can be calculated.
+            self.fee_var.set("")
+            self._set_status(f"Income must be at least {format_money(MIN_INCOME)} "
+                             "(lower values are not covered by the fee tables).")
+            return
         self.fee_var.set(format_money(fee))
 
     def _refresh_tree(self) -> None:
-        """Redibuja el Treeview con el contenido de la estructura seleccionada."""
+        """Redraw the Treeview with the contents of the selected structure."""
         structure = self.structure_var.get()
         self.tree.delete(*self.tree.get_children())
         for position, affiliate in enumerate(self.repository.items(structure)):
             self.tree.insert("", "end", values=affiliate.as_row(),
                              tags=("first",) if position == 0 else ())
-        hints = {"Pila": " (tope primero)", "Cola": " (frente primero)", "Lista": ""}
+        hints = {"Stack": " (top first)", "Queue": " (front first)", "List": ""}
         self.table_title.config(
-            text=f"{structure} \u2014 Afiliados Registrados{hints[structure]}  "
+            text=f"{structure} \u2014 Registered Affiliates{hints[structure]}  "
                  f"[{self.repository.count(structure)}]")
 
     def _read_date(self):
@@ -257,11 +265,11 @@ class AffiliationWindow(tk.Tk):
         except ValueError:
             return None
 
-    # ---------------------------------------------------------------- eventos
+    # ---------------------------------------------------------------- handlers
     def _on_structure_changed(self, _event=None) -> None:
         self.report_var.set("")
         self._refresh_tree()
-        self._set_status(f"Estructura en pantalla: {self.structure_var.get()}")
+        self._set_status(f"Viewing structure: {self.structure_var.get()}")
 
     def _on_register(self) -> None:
         id_number = self.id_number_var.get().strip()
@@ -270,27 +278,33 @@ class AffiliationWindow(tk.Tk):
 
         missing = []
         if not self.id_type_var.get():
-            missing.append("Tipo ID")
+            missing.append("ID Type")
         if not id_number:
-            missing.append("N\u00famero ID")
+            missing.append("ID Number")
         if not full_name:
-            missing.append("Nombre completo")
+            missing.append("Full Name")
         if not income_text:
-            missing.append("Ingresos actuales")
+            missing.append("Current Income")
         if not self.service_var.get():
-            missing.append("Servicio deseado")
+            missing.append("Desired Service")
         if missing:
-            messagebox.showwarning("Datos incompletos", "Por favor diligencie: " + ", ".join(missing) + ".",
+            messagebox.showwarning("Missing data", "Please complete: " + ", ".join(missing) + ".",
                                    parent=self)
             return
 
         affiliation_date = self._read_date()
         if affiliation_date is None:
-            messagebox.showwarning("Fecha inv\u00e1lida", "La fecha de afiliaci\u00f3n no es una fecha v\u00e1lida.",
+            messagebox.showwarning("Invalid date", "The affiliation date is not a valid date.",
                                    parent=self)
             return
 
         income = int(income_text)
+        if income < MIN_INCOME:
+            messagebox.showwarning(
+                "Income not covered",
+                f"The current income must be at least {format_money(MIN_INCOME)}.\n"
+                "Lower incomes are not covered by the affiliation fee tables.", parent=self)
+            return
         fee = calculate_affiliation_fee(income, self.employment_var.get(), self.service_var.get())
         affiliate = EstructuraDatosAfiliado(
             id_type=self.id_type_var.get(), id_number=id_number, full_name=full_name,
@@ -301,56 +315,56 @@ class AffiliationWindow(tk.Tk):
         structure = self.structure_var.get()
         self.repository.register(structure, affiliate)
         self._refresh_tree()
-        actions = {"Pila": "apilado en la pila", "Cola": "encolado", "Lista": "agregado a la lista"}
+        actions = {"Stack": "pushed onto the stack", "Queue": "enqueued", "List": "added to the list"}
         self._set_status(f"{full_name} {actions[structure]}.")
 
     def _on_delete(self) -> None:
         structure = self.structure_var.get()
 
-        if structure == "Lista":
+        if structure == "List":
             id_number = simpledialog.askstring(
-                "Eliminar de la Lista", "Digite el n\u00famero de identificaci\u00f3n del afiliado a eliminar:", parent=self)
+                "Delete from List", "Enter the ID number of the affiliate to delete:", parent=self)
             if id_number is None:
                 return
             id_number = id_number.strip()
             if not id_number.isascii() or not id_number.isdigit():
-                messagebox.showwarning("Identificaci\u00f3n inv\u00e1lida", "El n\u00famero de identificaci\u00f3n solo debe contener n\u00fameros.",
+                messagebox.showwarning("Invalid ID", "The ID number must contain digits only.",
                                        parent=self)
                 return
             target = self.repository.find_in_list(id_number)
             if target is None:
-                messagebox.showinfo("No encontrado", f"No existe un afiliado con identificaci\u00f3n {id_number} en la lista.",
+                messagebox.showinfo("Not found", f"No affiliate with ID {id_number} in the list.",
                                     parent=self)
                 return
         else:
             target = self.repository.peek(structure)
             if target is None:
-                messagebox.showinfo("Vac\u00eda", f"La {structure.lower()} est\u00e1 vac\u00eda.", parent=self)
+                messagebox.showinfo("Empty", f"The {structure.lower()} is empty.", parent=self)
                 return
 
-        verb = {"Pila": "desapilar (eliminar el tope)", "Cola": "desencolar (eliminar el frente)",
-                "Lista": "eliminar de la lista"}[structure]
+        verb = {"Stack": "pop (remove the top)", "Queue": "dequeue (remove the front)",
+                "List": "remove from the list"}[structure]
         if not messagebox.askyesno(
-                "Confirmar eliminaci\u00f3n",
-                f"\u00bfDesea {verb}?\n\n{target.full_name} \u2014 {target.id_type} {target.id_number}",
+                "Confirm deletion",
+                f"Do you want to {verb}?\n\n{target.full_name} \u2014 {target.id_type} {target.id_number}",
                 parent=self):
             return
 
-        if structure == "Lista":
+        if structure == "List":
             removed = self.repository.remove_from_list(target.id_number)
         else:
             removed = self.repository.remove(structure)
         self._refresh_tree()
         self.report_var.set("")
-        self._set_status(f"Se elimin\u00f3 a {removed.full_name} de la {structure.lower()}.")
+        self._set_status(f"Removed {removed.full_name} from the {structure.lower()}.")
 
     def _on_report(self) -> None:
         structure = self.structure_var.get()
         self.report_var.set(self.repository.report(structure))
-        self._set_status(f"Reporte generado para la {structure.lower()}.")
+        self._set_status(f"Report generated for the {structure.lower()}.")
 
     def _on_clear(self) -> None:
-        """Limpia los campos del formulario; los registros almacenados no se afectan."""
+        """Reset the form fields; the records in the structures are untouched."""
         today = date.today()
         self.id_type_var.set(ID_TYPES[0])
         self.id_number_var.set("")
@@ -364,7 +378,7 @@ class AffiliationWindow(tk.Tk):
         self.report_var.set("")
         self._update_fee()
         self.id_number_entry.focus_set()
-        self._set_status("Formulario limpio. Los registros almacenados no se afectaron.")
+        self._set_status("Form cleared. Stored records were not affected.")
 
     def _on_exit(self) -> None:
         self.destroy()

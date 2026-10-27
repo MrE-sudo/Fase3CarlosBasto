@@ -1,15 +1,15 @@
-"""Constantes generales de la aplicación Fase3CarlosBasto."""
+"""Application-wide constants for Fase3HernandoRobles."""
 
 APP_NAME = "Fase3CarlosBasto"
-STUDENT_NAME = "Carlos Basto"
-COURSE_NAME = "Estructura de Datos"
+STUDENT_NAME = "Carlos Eduardo Basto"  
+COURSE_NAME = "Data Structures"
 COURSE_CODE = "301305"
-COLLABORATIVE_GROUP = "301305"  
-INSTITUTION = "UNAD \u00b7 ECBTI \u00b7 Ingenier\u00eda de Sistemas"
+COLLABORATIVE_GROUP = "301305_97"  
+INSTITUTION = "UNAD \u00b7 ECBTI \u00b7 Systems Engineering"
 
 LOGIN_PASSWORD = "Caja"
 
-# Paleta de colores (tema oscuro)
+# Color palette (dark theme)
 COLOR_BG = "#0f1f33"
 COLOR_PANEL = "#16293f"
 COLOR_FIELD = "#1b3552"

@@ -1,4 +1,4 @@
-"""Punto de entrada: ventana de Login -> ventana de ingreso de afiliados."""
+"""Entry point: Login window -> Affiliation data entry window."""
 
 from affiliation_view import AffiliationWindow
 from login_view import LoginWindow
